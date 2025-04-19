@@ -1,0 +1,87 @@
+/* ===== Main Layout and Containers ===== */
+.main-container {
+  background-color: #e0e0e0;
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.main-container h1 {
+  color: #333;
+  font-size: 32px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+/* ===== Instructions Section ===== */
+.instructions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.instruction-row {
+  align-items: stretch;
+  display: flex;
+  margin-bottom: 40px;
+}
+
+.instruction-step {
+  align-items: center;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  padding: 20px;
+}
+
+.instruction-content {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+}
+
+.step-number {
+  align-items: center;
+  background-color: #3498db;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: bold;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.instruction-content p {
+  color: #333;
+  font-size: 16px;
+  margin: 0;
+}
+
+.instruction-image {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  height: 100%;
+  max-width: 120px;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* ===== Base Button Style ===== */
+.btn {
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.hidden {
+  display: none !important;
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es6", // Компиляция в ES6
+    "module": "esnext", // Для модулей ES
+    "strict": true, // Включение строгих проверок
+    "esModuleInterop": true, // Для использования CommonJS/ESM
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist", // Папка, куда компилировать TypeScript
+    "moduleResolution": "node", // Стиль разрешения модулей
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts"], // Папки/файлы, которые должны компилироваться
+  "exclude": ["node_modules"]
+}
