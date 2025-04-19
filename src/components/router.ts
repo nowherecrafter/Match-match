@@ -1,43 +1,51 @@
 import { loadAbout } from '../pages/about';
+import { loadBestScore } from '../pages/best-score';
 
 export class Router {
   private routes: { [key: string]: () => void } = {};
 
   constructor() {
     this.routes = {
-      '/about': loadAbout,
-      '/': loadAbout,
+      '/about': loadAbout,      // Загружаем About по пути "/about"
+      '/': loadAbout,           // Корневой путь перенаправляется на About
+      '/best-score': loadBestScore,  // Загружаем Best Score по пути "/best-score"
     };
-    this.setupEventListeners();
+
+    this.setupEventListeners();  // Подключаем обработчики событий
   }
 
   private setupEventListeners(): void {
-    window.addEventListener('popstate', () => this.handleRouteChange());
-    document.addEventListener('click', (e) => this.handleLinkClick(e));
+    window.addEventListener('popstate', () => this.handleRouteChange());  // Обработка изменения истории
+    document.addEventListener('click', (e) => this.handleLinkClick(e));   // Обработка кликов по ссылкам
   }
 
   private handleLinkClick(e: MouseEvent): void {
     const target = e.target as HTMLElement;
+  
     if (target.tagName === 'A' && target.classList.contains('nav-link')) {
       e.preventDefault();
-      const path = new URL(target.getAttribute('href')!).pathname;
-      this.navigate(path);
+      const rawHref = target.getAttribute('href');
+      if (rawHref) {
+        const path = new URL(rawHref, window.location.origin).pathname;
+        this.navigate(path);
+      }
     }
   }
+  
 
   public navigate(path: string): void {
-    window.history.pushState({}, path, path);
-    this.handleRouteChange();
+    window.history.pushState({}, path, path);  // Обновляем URL в истории браузера
+    this.handleRouteChange();  // Загружаем контент для нового маршрута
   }
 
   private handleRouteChange(): void {
-    const path = window.location.pathname;
-    const routeHandler = this.routes[path] || this.routes['/about'];
+    const path = window.location.pathname;  // Получаем текущий путь
+    const routeHandler = this.routes[path] || this.routes['/about'];  // Если маршрут не найден, загружаем About
 
     const appContainer = document.getElementById('app');
     if (appContainer) {
-      appContainer.innerHTML = '';  // Очищаем предыдущий контент
-      routeHandler();
+      appContainer.innerHTML = '';  // Очищаем контейнер
+      routeHandler();  // Загружаем нужную страницу
     }
   }
 }
