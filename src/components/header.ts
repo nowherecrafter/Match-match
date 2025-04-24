@@ -1,4 +1,11 @@
-import { AppState } from "../modules/state"; // Импорт AppState
+import { AppState } from "../modules/state";
+import { GameDatabase } from '../services/db';
+import md5 from 'md5';
+
+function getGravatarUrl(email: string, size = 40): string {
+  const hash = md5(email.trim().toLowerCase());
+  return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`;
+}
 
 class Header {
   private static instance: Header;
@@ -12,6 +19,7 @@ class Header {
     this.updateUI(AppState.getState());  // Вызов метода для начальной настройки состояния
   }
 
+  
   private createHeader(): HTMLElement {
     const header = document.createElement('header');
     header.classList.add('game-header');
@@ -73,14 +81,36 @@ class Header {
   }
 
   updateUI(state: typeof AppState.state): void {
-    const { isAuthenticated, gameStarted } = state;
+    const { isAuthenticated, gameStarted, currentPlayerId } = state;
   
-    // Обновление видимости кнопок в зависимости от состояния
     this.toggleElement('registerBtn', !isAuthenticated);
     this.toggleElement('userAvatar', isAuthenticated);
     this.toggleElement('startGameBtn', isAuthenticated && !gameStarted);
     this.toggleElement('stopGameBtn', isAuthenticated && gameStarted);
+  
+    if (isAuthenticated && currentPlayerId !== null) {
+      // Загрузим email из базы
+      const avatarImg = document.querySelector('#userAvatar img') as HTMLImageElement | null;
+      if (avatarImg) {
+        const db = new GameDatabase();
+        db.init().then(() => {
+          const tx = db['db']!.transaction('players', 'readonly');
+          const store = tx.objectStore('players');
+          const request = store.get(currentPlayerId);
+  
+          request.onsuccess = () => {
+            const player = request.result;
+            if (player && player.email) {
+              avatarImg.src = getGravatarUrl(player.email);
+            }
+          };
+        });
+      }
+    }
   }
+  
+  
+  
   
   private toggleElement(id: string, show: boolean): void {
     const element = document.getElementById(id);

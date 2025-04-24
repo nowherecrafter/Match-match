@@ -4,43 +4,65 @@ export class GameDatabase {
   private readonly dbName = 'memory-game';
   private db: IDBDatabase | null = null;
 
-  // DB initialization
+  private predefinedPlayers: Player[] = [
+    { id: 1, firstName: 'Noe', lastName: 'Ware', email: 'nowherecrafter@gmail.com' },
+    { id: 2, firstName: 'Ivan', lastName: 'Derban', email: 'ivan.derban.dev@gmail.com' },
+  ];
+
+  private predefinedResults: GameResult[] = [
+    { playerId: 1, score: 5000, time: 120, date: new Date(), difficulty: '4x4', cardType: 'classic' },
+    { playerId: 2, score: 4700, time: 110, date: new Date(), difficulty: '4x4', cardType: 'classic' },
+  ];
+
+  // Инициализация базы данных
   public async init(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-
-      request.onerror = () => reject('An error occurred during opening the database');
-
-      request.onsuccess = () => {
-        this.db = request.result;
+      const dbRequest = indexedDB.open(this.dbName, 1);
+  
+      dbRequest.onerror = () => reject('An error occurred during opening the database');
+  
+      dbRequest.onsuccess = () => {
+        this.db = dbRequest.result;
         resolve();
       };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
+  
+      dbRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        const db = (event.target as IDBRequest<IDBDatabase>).result;
+  
+        // Создаем объект хранилища, если их нет
         if (!db.objectStoreNames.contains('players')) {
-          const store = db.createObjectStore('players', {
+          const playersStore = db.createObjectStore('players', {
             keyPath: 'id',
-            autoIncrement: true // ID autogeneration
+            autoIncrement: true, // ID autogeneration
           });
-          store.createIndex('email', 'email', { unique: true });
+          playersStore.createIndex('email', 'email', { unique: true });
         }
-
+  
         if (!db.objectStoreNames.contains('results')) {
-          const store = db.createObjectStore('results', {
+          const resultsStore = db.createObjectStore('results', {
             keyPath: 'id',
-            autoIncrement: true // ID autogeneration
+            autoIncrement: true, // ID autogeneration
           });
-          store.createIndex('playerId', 'playerId', { unique: false });
-          store.createIndex('score', 'score', { unique: false });
-          store.createIndex('date', 'date', { unique: false });
+          resultsStore.createIndex('playerId', 'playerId', { unique: false });
+          resultsStore.createIndex('score', 'score', { unique: false });
+          resultsStore.createIndex('date', 'date', { unique: false });
         }
+  
+        // Присваиваем обработчик success после создания базы данных
+        const target = event.target as IDBRequest<IDBDatabase>;
+        target.onsuccess = () => {
+          this.db = target.result; // Сохраняем ссылку на базу данных
+          resolve();
+        };
       };
     });
   }
+  
+  
+  
+  
 
-  // Adding a player
+  // Добавление игрока
   public async addPlayer(player: Omit<Player, 'id'>): Promise<number> {
     if (!this.db) await this.init();
 
@@ -55,7 +77,7 @@ export class GameDatabase {
     });
   }
 
-  // Adding a game result
+  // Добавление результата игры
   public async addGameResult(result: GameResult): Promise<number> {
     if (!this.db) await this.init();
 
@@ -70,61 +92,60 @@ export class GameDatabase {
     });
   }
 
-  // Get the top players
-  public async getTopPlayers(limit = 10): Promise<Player[]> {
-    if (!this.db) await this.init();
+  // Получение топовых игроков
+public async getTopPlayers(limit = 10): Promise<any[]> {
+  if (!this.db) await this.init();
 
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction(['players', 'results'], 'readonly');
-      const playersStore = tx.objectStore('players');
-      const resultsStore = tx.objectStore('results');
+  return new Promise((resolve, reject) => {
+    const tx = this.db!.transaction(['players', 'results'], 'readonly');
+    const playersStore = tx.objectStore('players');
+    const resultsStore = tx.objectStore('results');
 
-      // Sorting results by descending score using the 'score' index
-      const scoreIndex = resultsStore.index('score');
-      const request = scoreIndex.openCursor(null, 'prev'); // Sorting in descending order
+    const scoreIndex = resultsStore.index('score');
+    const request = scoreIndex.openCursor(null, 'prev'); // Сортировка по убыванию баллов
 
-      const topPlayersMap = new Map<number, { player: Player; bestScore: number }>(); // Store the best score for each player
+    const topPlayersMap = new Map<number, { playerId: number, bestScore: number }>();
+    const topPlayers: any[] = [];
 
-      const topPlayers: Player[] = [];
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor) {
+        const result = cursor.value as GameResult;
 
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-        if (cursor && topPlayers.length < limit) {
-          const result = cursor.value as GameResult;
-
-          // If the player is not already in the top list, add them
-          if (!topPlayersMap.has(result.playerId)) {
-            topPlayersMap.set(result.playerId, { player: null as unknown as Player, bestScore: result.score });
-
-            // Retrieve the player data using playerId
-            const playerRequest = playersStore.get(result.playerId);
-            playerRequest.onsuccess = () => {
-              const player = playerRequest.result;
-              if (player) {
-                topPlayersMap.set(result.playerId, { player, bestScore: result.score });
-              }
-
-              // Continue to the next cursor entry
-              cursor.continue();
-            };
-          } else {
-            const playerData = topPlayersMap.get(result.playerId);
-            if (playerData && result.score > playerData.bestScore) {
-              playerData.bestScore = result.score;
-            }
-            cursor.continue();
-          }
+        if (!topPlayersMap.has(result.playerId)) {
+          topPlayersMap.set(result.playerId, { playerId: result.playerId, bestScore: result.score });
         } else {
-          // Map contains top players, resolve the results
-          topPlayersMap.forEach((value) => {
-            topPlayers.push(value.player);
-          });
-
-          resolve(topPlayers);
+          const playerData = topPlayersMap.get(result.playerId);
+          if (playerData && result.score > playerData.bestScore) {
+            playerData.bestScore = result.score;
+          }
         }
-      };
+        cursor.continue();
+      } else {
+        // После завершения работы с курсором, получаем игроков и их лучшие результаты
+        topPlayersMap.forEach((value) => {
+          const playerRequest = playersStore.get(value.playerId);
+          playerRequest.onsuccess = () => {
+            const player = playerRequest.result;
+            if (player) {
+              topPlayers.push({
+                ...player,
+                bestScore: value.bestScore,  // Добавляем bestScore отдельно
+              });
+            }
 
-      request.onerror = () => reject('Error fetching top players');
-    });
-  }
+            // Когда все игроки обработаны, выводим результаты
+            if (topPlayers.length === topPlayersMap.size) {
+              resolve(topPlayers.slice(0, limit)); // Ограничиваем вывод топ-игроками
+            }
+          };
+        });
+      }
+    };
+
+    request.onerror = () => reject('Error fetching top players');
+  });
+}
+
+  
 }
