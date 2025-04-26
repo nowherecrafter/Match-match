@@ -63,19 +63,22 @@ export class GameDatabase {
   
 
   // Добавление игрока
-  public async addPlayer(player: Omit<Player, 'id'>): Promise<number> {
-    if (!this.db) await this.init();
+  // В методе addPlayer
+public async addPlayer(player: Omit<Player, 'id'>): Promise<number> {
+  if (!this.db) await this.init();
 
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('players', 'readwrite');
-      const store = tx.objectStore('players');
+  return new Promise((resolve, reject) => {
+    const tx = this.db!.transaction('players', 'readwrite');
+    const store = tx.objectStore('players');
 
-      const request = store.add(player);
+    const request = store.add(player);
 
-      request.onsuccess = () => resolve(request.result as number); // Returning a generated ID
-      request.onerror = () => reject('An error occurred while saving the player');
-    });
-  }
+    request.onsuccess = () => resolve(request.result as number); // Возвращаем сгенерированный ID
+    request.onerror = () => reject(new Error('An error occurred while saving the player')); // Более точная ошибка
+  });
+}
+
+  
 
   // Добавление результата игры
   public async addGameResult(result: GameResult): Promise<number> {
