@@ -1,0 +1,100 @@
+/* ===== Universal ModalForm Styles ===== */
+.modalform {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modalform-backdrop {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modalform-content {
+    position: relative;
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 16px;
+    z-index: 1001;
+    max-width: 400px;
+    width: 90%;
+  }
+  
+  /* ===== Updated Form Fields (inside modal) ===== */
+  .modalform form input[type="text"],
+  .modalform form input[type="email"] {
+    width: 100%;
+    background-color: #f0f0f0; /* светло-серая заливка */
+    border: none;
+    border-bottom: 2px solid #555;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  
+  /* Ошибка ввода */
+  .input-error {
+    border-bottom: 2px solid red;
+  }
+  
+  /* ===== Form Buttons (inside modal) ===== */
+  .modalform-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .modalform-buttons button[type="submit"] {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .modalform-buttons button[type="submit"]:hover {
+    background-color: #2980b9;
+  }
+  
+  .modalform-buttons button.modalform-close {
+    background-color: #e0f2ff;
+    color: #3498db;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .modalform-buttons button.modalform-close:hover {
+    background-color: #cce7ff;
+  }
+  
+  /* ===== Ошибки текстом ===== */
+  .error-text {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 4px;
+  }
+  .form-buttons button#close-modal {
+    background-color: #e0f2ff;
+    color: #3498db;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}

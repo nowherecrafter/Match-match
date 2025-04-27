@@ -95,6 +95,22 @@ public async addPlayer(player: Omit<Player, 'id'>): Promise<number> {
     });
   }
 
+  async getPlayerByEmail(email: string): Promise<any | null> {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('Database not initialized'));
+        return;
+      }
+      const tx = this.db.transaction('players', 'readonly');
+      const store = tx.objectStore('players');
+      const index = store.index('email'); // нужен индекс по email
+  
+      const request = index.get(email);
+      request.onsuccess = () => resolve(request.result ?? null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+  
   // Получение топовых игроков
 public async getTopPlayers(limit = 10): Promise<any[]> {
   if (!this.db) await this.init();

@@ -3,6 +3,7 @@ import { Router } from './components/router';
 import { AppState } from './modules/state';
 import './styles/base.css';
 import './styles/header.css';
+import './styles/modal.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 document.addEventListener('DOMContentLoaded', () => {
