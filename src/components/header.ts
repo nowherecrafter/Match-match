@@ -37,7 +37,7 @@ class Header {
       <nav class="game-nav">
         <a href="/about" class="nav-link">About Game</a>
         <a href="/best-score" class="nav-link">Best Score</a>
-        <a href="/settings" class="nav-link">Game Settings</a>
+        <a href="/settings" class="nav-link">Game Settings</a> <!-- Ссылка на страницу настроек -->
       </nav>
 
       <div class="header-actions">

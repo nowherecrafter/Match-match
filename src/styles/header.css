@@ -75,6 +75,11 @@
     margin-right: 10px;
   }
   
+  .btn--login {
+    background: white;
+    color: #3498db;
+  }
+
   .btn--start {
     background: #2ecc71;
     color: white;
