@@ -1,4 +1,4 @@
-import { AppState } from '../modules/state';
+import { AppState } from '../services/state';
 import { GameDatabase } from '../services/db';
 import { RegistrationModal } from './registrationModal';
 import { LoginModal } from './loginModal';  // ← импорт модалки логина

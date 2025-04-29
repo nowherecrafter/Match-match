@@ -1,6 +1,6 @@
 import { header } from './components/header';
 import { Router } from './components/router';
-import { AppState } from './modules/state';
+import { AppState } from './services/state';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import * as bootstrap from 'bootstrap';  
 import '@popperjs/core';
