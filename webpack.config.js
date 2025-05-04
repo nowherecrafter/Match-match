@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin'); // 👈 ДОБАВЬ ЭТО
 
 module.exports = {
   entry: './src/index.ts',
@@ -8,7 +9,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
-  mode: 'development', // или 'production' на проде
+  mode: 'development',
   resolve: {
     extensions: ['.ts', '.js'],
   },
@@ -25,13 +26,18 @@ module.exports = {
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg)$/i,
-        type: 'asset/resource',
+        type: 'asset/resource', // можно оставить, но этого недостаточно
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'assets', to: 'assets' }, // 👈 КОПИРУЕМ assets в dist
+      ],
     }),
   ],
   devServer: {

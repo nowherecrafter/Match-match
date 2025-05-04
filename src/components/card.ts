@@ -1,3 +1,4 @@
+// src/components/card.ts
 export interface CardData {
   id: number;        // Уникальный ID карточки
   image: string;     // Путь к изображению
@@ -12,6 +13,7 @@ interface CardProps {
 
 // Функция для создания карточки
 export function createCard({ card, onClick }: CardProps): HTMLElement {
+  const cardBackImage = 'assets/images/back.png'; // Путь для рубашки карты
   const cardElement = document.createElement('div');
   cardElement.classList.add('card', 'd-flex', 'justify-content-center', 'align-items-center');
   cardElement.dataset.id = String(card.id);
@@ -29,13 +31,15 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
 
   // Контент карточки
   cardElement.innerHTML = `
-    <div class="card-inner">
-      <div class="card-front"></div>
-      <div class="card-back">
-        <img src="${card.image}" alt="Card image" />
-      </div>
+  <div class="card-inner">
+    <div class="card-front">
+      <img src="${cardBackImage}" alt="Card back" />
     </div>
-  `;
+    <div class="card-back">
+      <img src="${card.image}" alt="Card image" />
+    </div>
+  </div>
+`;
 
   return cardElement;
 }

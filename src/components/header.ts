@@ -55,11 +55,11 @@ class Header {
 
   private setupEventListeners(): void {
     this.element.querySelector('#startGameBtn')?.addEventListener('click', () => {
-      AppState.updateState({ gameStarted: true });
+      window.location.href = '/game';
     });
 
     this.element.querySelector('#stopGameBtn')?.addEventListener('click', () => {
-      AppState.updateState({ gameStarted: false });
+      window.location.href = '/about';
     });
 
     this.element.querySelector('#registerBtn')?.addEventListener('click', () => {

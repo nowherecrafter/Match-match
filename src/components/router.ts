@@ -1,6 +1,7 @@
 import { loadAbout } from '../pages/about';
 import { loadBestScore } from '../pages/best-score';
 import { loadSettings } from '../pages/settings'; // Импорт функции для загрузки страницы настроек
+import { loadGame } from '../pages/game'; // Импортируем страницу игры
 
 export class Router {
   private routes: { [key: string]: () => void } = {};
@@ -11,6 +12,7 @@ export class Router {
       '/': loadAbout,           // Корневой путь перенаправляется на About
       '/best-score': loadBestScore,  // Загружаем Best Score по пути "/best-score"
       '/settings': loadSettings,    // Загружаем страницу настроек по пути "/settings"
+      '/game': loadGame,          // Прописываем новый маршрут для игры
     };
 
     this.setupEventListeners();  // Подключаем обработчики событий
