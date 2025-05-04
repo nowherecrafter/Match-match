@@ -4,6 +4,7 @@ import { AppState } from './services/state';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import * as bootstrap from 'bootstrap';  
 import '@popperjs/core';
+import './styles/game.css';
 import './styles/base.css';
 import './styles/header.css';
 import './styles/modal.css';

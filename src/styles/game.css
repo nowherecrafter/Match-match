@@ -1,74 +1,74 @@
-.card {
-    width: 100px;
-    height: 100px;
-    perspective: 1000px;
-    margin: 5px;
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .card-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-  }
-  
-  .card.flipped .card-inner {
-    transform: rotateY(180deg);
-  }
-  
-  .card-front, .card-back {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    backface-visibility: hidden;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  }
-  
-  .card-front {
-    background-color: #f8f9fa;
-  }
-  
-  .card-back {
-    transform: rotateY(180deg);
-    background-color: #fff;
-  }
-  
-  .card.matched {
-    border: 2px solid green;
-  }
-  
-  .card.wrong {
-    border: 2px solid red;
-  }
-  
+/* Кастомный класс для отступов между рядами */
+.custom-row-gap {
+  margin-bottom: 15px; /* Отступ 15px между рядами */
+}
 
-  .timer {
-    background: #fff; /* Белый фон */
-    color: #333; /* Тёмно-серые цифры */
-    font-size: 2rem;
-    font-weight: bold;
-    padding: 12px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Мягкая тень */
-    display: inline-block;
-    min-width: 140px;
-    text-align: center;
-  }
-  
-  /* Плавные изменения */
-  .timer {
-    transition: all 0.3s ease;
-  }
+/* Стили для карточек игры */
+.game-card {
+  width: 100%;
+  height: auto;
+  margin: 5px;
+  padding-bottom: 10px; /* Паддинг только снизу */
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Плавный переход для возможных изменений */
+}
 
-  .game-board {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 карточки в ряд по умолчанию */
-    gap: 1rem;
-    justify-items: center;
-    align-items: center;
-    margin-top: 20px;
-  }
+/* Стиль для внутренней части карточки */
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg); /* Поворот карточки при флипе */
+}
+
+/* Лицевая и оборотная стороны карточки */
+.card-front, .card-back {
+  position: absolute;
+  backface-visibility: hidden; /* Оборотная сторона не видна при повороте */
+  width: 100%;
+  height: 100%;
+}
+
+.card-front {
+  transform: rotateY(0deg); /* Лицевая сторона — не поворачивается */
+}
+
+.card-back {
+  transform: rotateY(180deg); /* Оборотная сторона — перевёрнута */
+}
+
+/* Таймер */
+.timer {
+  background: #fff;
+  color: #333;
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  min-width: 140px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+/* Стиль игрового поля */
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Для 4 колонок по умолчанию */
+  gap: 1rem; /* Отступы между карточками */
+  justify-items: center; /* Центрируем карточки по горизонтали */
+  align-items: center; /* Центрируем карточки по вертикали */
+  margin-top: 20px;
+}
+
+/* Сделаем карточки адаптивными, чтобы они хорошо смотрелись на разных экранах */
+
+/* Убедимся, что колонки и ряды равномерно занимают пространство */
+
