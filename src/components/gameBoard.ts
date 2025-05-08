@@ -19,7 +19,7 @@ export function renderGameBoard({ cards, difficulty, onCardClick }: GameBoardOpt
 
   for (let i = 0; i < numberOfRows; i++) {
     const row = document.createElement('div');
-    row.classList.add('row', 'custom-row-gap');
+    row.classList.add('row');
 
     for (let j = 0; j < cardsPerRow && cardIndex < cards.length; j++) {
       const card = cards[cardIndex++];
@@ -32,5 +32,11 @@ export function renderGameBoard({ cards, difficulty, onCardClick }: GameBoardOpt
     }
 
     board.appendChild(row);
+  }
+
+  // Устанавливаем ширину gameBoard как 70% от высоты его родителя
+  const parent = board.parentElement;
+  if (parent) {
+    board.style.width = `${window.innerHeight * 0.80}px`;
   }
 }

@@ -1,23 +1,19 @@
-/* Кастомный класс для отступов между рядами */
-.custom-row-gap {
-  margin-bottom: 15px; /* Отступ 15px между рядами */
-}
-
-.col-8th {
-    flex: 0 0 12.5%;
-    max-width: 12.5%;
-}
-
 /* Стили для карточек игры */
 .game-card {
   width: 100%;
   height: auto;
-  margin: 5px;
-  padding-bottom: 10px; /* Паддинг только снизу */
+  padding-top: calc(var(--bs-gutter-x)* .1);
+  padding-bottom: calc(var(--bs-gutter-x)* .1);
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease; /* Плавный переход для возможных изменений */
   object-fit: contain;
+}
+
+.col{
+  padding-left: calc(var(--bs-gutter-x)* .1) !important;
+  padding-right: calc(var(--bs-gutter-x)* .1) !important;
+
 }
 
 /* Стиль для внутренней части карточки */
@@ -65,7 +61,7 @@
 }
 
 #gameBoard {
-  height: calc(100vh - 200px); /* Ограничиваем высоту поля */
+  
   display: flex;
   flex-direction: column;
   justify-content: center;
