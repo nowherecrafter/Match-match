@@ -30,7 +30,7 @@ export function loadGame(): void {
     </div>
 
     <!-- Игровое поле -->
-    <div id="gameBoard" class="game-board mt-4">
+    <div id="gameBoard" class="container">
       <!-- Карточки будут динамически сюда добавляться -->
     </div>
   </div>

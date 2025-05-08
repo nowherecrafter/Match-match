@@ -3,6 +3,11 @@
   margin-bottom: 15px; /* Отступ 15px между рядами */
 }
 
+.col-8th {
+    flex: 0 0 12.5%;
+    max-width: 12.5%;
+}
+
 /* Стили для карточек игры */
 .game-card {
   width: 100%;
@@ -12,6 +17,7 @@
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease; /* Плавный переход для возможных изменений */
+  object-fit: contain;
 }
 
 /* Стиль для внутренней части карточки */
@@ -58,17 +64,12 @@
   transition: all 0.3s ease;
 }
 
-/* Стиль игрового поля */
-.game-board {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Для 4 колонок по умолчанию */
-  gap: 1rem; /* Отступы между карточками */
-  justify-items: center; /* Центрируем карточки по горизонтали */
-  align-items: center; /* Центрируем карточки по вертикали */
-  margin-top: 20px;
+#gameBoard {
+  height: calc(100vh - 200px); /* Ограничиваем высоту поля */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
 }
 
-/* Сделаем карточки адаптивными, чтобы они хорошо смотрелись на разных экранах */
-
-/* Убедимся, что колонки и ряды равномерно занимают пространство */
 
