@@ -1,31 +1,37 @@
 import { loadAbout } from '../pages/about';
 import { loadBestScore } from '../pages/best-score';
-import { loadSettings } from '../pages/settings'; // Импорт функции для загрузки страницы настроек
-import { loadGame } from '../pages/game'; // Импортируем страницу игры
+import { loadSettings } from '../pages/settings';
+import { loadGame, unloadGame } from '../pages/game';
 
 export class Router {
-  private routes: { [key: string]: () => void } = {};
+  private routes: {
+    [key: string]: {
+      load: () => void;
+      unload?: () => void;
+    };
+  } = {};
+
+  private currentRoute?: string;
 
   constructor() {
     this.routes = {
-      '/about': loadAbout,      // Загружаем About по пути "/about"
-      '/': loadAbout,           // Корневой путь перенаправляется на About
-      '/best-score': loadBestScore,  // Загружаем Best Score по пути "/best-score"
-      '/settings': loadSettings,    // Загружаем страницу настроек по пути "/settings"
-      '/game': loadGame,          // Прописываем новый маршрут для игры
+      '/about': { load: loadAbout },
+      '/': { load: loadAbout },
+      '/best-score': { load: loadBestScore },
+      '/settings': { load: loadSettings },
+      '/game': { load: loadGame, unload: unloadGame },
     };
 
-    this.setupEventListeners();  // Подключаем обработчики событий
+    this.setupEventListeners();
   }
 
   private setupEventListeners(): void {
-    window.addEventListener('popstate', () => this.handleRouteChange());  // Обработка изменения истории
-    document.addEventListener('click', (e) => this.handleLinkClick(e));   // Обработка кликов по ссылкам
+    window.addEventListener('popstate', () => this.handleRouteChange());
+    document.addEventListener('click', (e) => this.handleLinkClick(e));
   }
 
   private handleLinkClick(e: MouseEvent): void {
     const target = e.target as HTMLElement;
-  
     if (target.tagName === 'A' && target.classList.contains('nav-link')) {
       e.preventDefault();
       const rawHref = target.getAttribute('href');
@@ -35,21 +41,26 @@ export class Router {
       }
     }
   }
-  
 
   public navigate(path: string): void {
-    window.history.pushState({}, path, path);  // Обновляем URL в истории браузера
-    this.handleRouteChange();  // Загружаем контент для нового маршрута
+    window.history.pushState({}, path, path);
+    this.handleRouteChange();
   }
 
   private handleRouteChange(): void {
-    const path = window.location.pathname;  // Получаем текущий путь
-    const routeHandler = this.routes[path] || this.routes['/about'];  // Если маршрут не найден, загружаем About
+    const path = window.location.pathname;
+    const newRoute = this.routes[path] || this.routes['/'];
+
+    if (this.currentRoute && this.routes[this.currentRoute]?.unload) {
+      this.routes[this.currentRoute]!.unload!();
+    }
+
+    this.currentRoute = path;
 
     const appContainer = document.getElementById('app');
     if (appContainer) {
-      appContainer.innerHTML = '';  // Очищаем контейнер
-      routeHandler();  // Загружаем нужную страницу
+      appContainer.innerHTML = '';
+      newRoute.load();
     }
   }
 }
