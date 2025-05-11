@@ -59,6 +59,7 @@ class Header {
     });
 
     this.element.querySelector('#stopGameBtn')?.addEventListener('click', () => {
+      AppState.updateState({ gameStarted: false });
       window.location.href = '/about';
     });
 
