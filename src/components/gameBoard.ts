@@ -20,17 +20,24 @@ export function renderGameBoard({ cards, difficulty, onCardClick }: GameBoardOpt
   for (let i = 0; i < numberOfRows; i++) {
     const row = document.createElement('div');
     row.classList.add('row');
-
+  
     for (let j = 0; j < cardsPerRow && cardIndex < cards.length; j++) {
       const card = cards[cardIndex++];
       const cardElement = createCard({ card, onClick: onCardClick });
-
+  
       const col = document.createElement('div');
-      col.classList.add('col');
+  
+      // Добавляем кастомный класс, если 8x8
+      if (difficulty === '8x8') {
+        col.classList.add('col-custom-8');
+      } else {
+        col.classList.add('col');
+      }
+  
       col.appendChild(cardElement);
       row.appendChild(col);
     }
-
+  
     board.appendChild(row);
   }
 

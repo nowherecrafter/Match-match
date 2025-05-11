@@ -7,7 +7,6 @@
   cursor: pointer;
   perspective: 1000px;
   object-fit: contain;
-  min-height: 100px;
 }
 
 .col {
@@ -55,6 +54,8 @@
   object-fit: contain;
 }
 
+
+
 /* Таймер */
 .timer {
   background: #fff;
@@ -76,4 +77,11 @@
   flex-direction: column;
   justify-content: center;
   padding: 1rem;
+}
+
+.col-custom-8 {
+  flex: 0 0 12.5%;
+  max-width: 12.5%;
+  padding-left: calc(var(--bs-gutter-x) * 0.1) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.1) !important;
 }
