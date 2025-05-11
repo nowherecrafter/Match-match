@@ -1,4 +1,3 @@
-// src/components/card.ts
 export interface CardData {
   id: number;
   image: string;
@@ -12,36 +11,39 @@ interface CardProps {
 }
 
 export function createCard({ card, onClick }: CardProps): HTMLElement {
-  const cardBackImage = 'assets/images/back.png';  // Рубашка карточки
+  const cardBackImage = card.image;
   const cardElement = document.createElement('div');
   cardElement.classList.add('game-card', 'd-flex', 'justify-content-center', 'align-items-center');
   cardElement.dataset.id = String(card.id);
 
   if (card.isMatched) {
     cardElement.classList.add('matched');
-  } else if (card.isFlipped) {
+  }
+
+  // Убираем класс flipped, если карта не перевёрнута
+  if (card.isFlipped) {
     cardElement.classList.add('flipped');
   }
 
   const cardInner = document.createElement('div');
-  cardInner.classList.add('game-card-inner');
+  cardInner.classList.add('card-inner');
 
-  // Лицевая сторона карточки
+  // Лицевая сторона
   const cardFront = document.createElement('div');
-  cardFront.classList.add('game-card-front');
+  cardFront.classList.add('card-front');
   const frontImg = document.createElement('img');
-  frontImg.src = card.isFlipped ? card.image : cardBackImage;  // Показываем изображение карты или рубашку
+  frontImg.src = 'assets/images/back.png';
   frontImg.alt = 'Card front';
-  frontImg.classList.add('img-fluid');  // Добавляем класс img-fluid для ограничения размеров
+  frontImg.classList.add('img-fluid');
   cardFront.appendChild(frontImg);
 
-  // Оборотная сторона карточки
+  // Оборотная сторона (рубашка)
   const cardBack = document.createElement('div');
-  cardBack.classList.add('game-card-back');
+  cardBack.classList.add('card-back');
   const backImg = document.createElement('img');
   backImg.src = cardBackImage;
   backImg.alt = 'Card back';
-  backImg.classList.add('img-fluid');  // Добавляем класс img-fluid для ограничения размеров
+  backImg.classList.add('img-fluid');
   cardBack.appendChild(backImg);
 
   cardInner.appendChild(cardFront);
@@ -49,15 +51,13 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
   cardElement.appendChild(cardInner);
 
   cardElement.addEventListener('click', () => {
-    onClick(card);
+    if (!card.isFlipped) {
+      card.isFlipped = true;
+      cardElement.classList.add('flipped');
+      onClick(card);
+    }
   });
-
-  // Убираем одну из сторон карты в зависимости от состояния
-  if (!card.isFlipped) {
-    cardBack.style.display = 'none';  // Прячем оборотную сторону, если карта не перевёрнута
-  } else {
-    cardFront.style.display = 'none';  // Прячем лицевую сторону, если карта перевёрнута
-  }
 
   return cardElement;
 }
+

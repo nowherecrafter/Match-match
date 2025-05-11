@@ -20,7 +20,7 @@ export class GameManager {
 
     await this.generateGameBoard((card: CardData) => {
       // TODO: обработчик клика по карточке
-      console.log("Card clicked", card);
+      //console.log("Card clicked", card);
     });
   }
 
@@ -49,7 +49,7 @@ export class GameManager {
     const uniqueCardCount = cardCount / 2;
   
     const images = Array.from({ length: uniqueCardCount }, (_, i) =>
-      `assets/cards/${settings?.cardType.toLowerCase()}/${i + 1}.png`
+      `assets/images/${settings?.cardType}/Animal_${i + 1}.png`
     );
   
     let cards: CardData[] = [];

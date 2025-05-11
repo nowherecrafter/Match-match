@@ -26,7 +26,6 @@ class AppState {
   static updateState(updates: Partial<AppStateType>): void {
     this.state = { ...this.getState(), ...updates };
     sessionStorage.setItem('appState', JSON.stringify(this.state));
-    console.log('State updated:', this.state);
     document.dispatchEvent(new CustomEvent('stateChanged'));
   }
 }

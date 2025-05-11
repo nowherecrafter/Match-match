@@ -16,8 +16,6 @@ export async function loadBestScore(): Promise<void> {
   const db = new GameDatabase();
   const players = await db.getTopPlayers();
 
-  // Проверка, что данные получены
-  console.log('Top Players:', players);
 
   if (players.length === 0) {
     app.innerHTML = `<p>No scores available.</p>`;
