@@ -60,3 +60,11 @@ export function flipCard(target: HTMLElement): void {
     cardElement.classList.add('flipped');
   }
 }
+
+export function unflipCard(target: HTMLElement): void {
+  const cardElement = target.closest('.game-card'); // Ищем ближайший родительский элемент с классом game-card
+
+  if (cardElement) {
+    cardElement.classList.remove('flipped'); // Убираем класс 'flipped'
+  }
+}
