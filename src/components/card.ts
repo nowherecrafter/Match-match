@@ -16,15 +16,6 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
   cardElement.classList.add('game-card', 'd-flex', 'justify-content-center', 'align-items-center');
   cardElement.dataset.id = String(card.id);
 
-  if (card.isMatched) {
-    cardElement.classList.add('matched');
-  }
-
-  // Убираем класс flipped, если карта не перевёрнута
-  if (card.isFlipped) {
-    cardElement.classList.add('flipped');
-  }
-
   const cardInner = document.createElement('div');
   cardInner.classList.add('card-inner');
 
@@ -60,4 +51,3 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
 
   return cardElement;
 }
-
