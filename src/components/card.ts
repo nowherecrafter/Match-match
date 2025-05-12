@@ -7,10 +7,22 @@ export interface CardData {
 
 interface CardProps {
   card: CardData;
-  onClick: (card: CardData) => void;
 }
 
-export function createCard({ card, onClick }: CardProps): HTMLElement {
+// src/components/card.ts
+
+export interface CardData {
+  id: number;
+  image: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+}
+
+interface CardProps {
+  card: CardData;
+}
+
+export function createCard({ card }: CardProps): HTMLElement {
   const cardBackImage = card.image;
   const cardElement = document.createElement('div');
   cardElement.classList.add('game-card', 'd-flex', 'justify-content-center', 'align-items-center');
@@ -19,7 +31,6 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
   const cardInner = document.createElement('div');
   cardInner.classList.add('card-inner');
 
-  // Лицевая сторона
   const cardFront = document.createElement('div');
   cardFront.classList.add('card-front');
   const frontImg = document.createElement('img');
@@ -28,7 +39,6 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
   frontImg.classList.add('img-fluid');
   cardFront.appendChild(frontImg);
 
-  // Оборотная сторона (рубашка)
   const cardBack = document.createElement('div');
   cardBack.classList.add('card-back');
   const backImg = document.createElement('img');
@@ -41,13 +51,12 @@ export function createCard({ card, onClick }: CardProps): HTMLElement {
   cardInner.appendChild(cardBack);
   cardElement.appendChild(cardInner);
 
-  cardElement.addEventListener('click', () => {
-    if (!card.isFlipped) {
-      card.isFlipped = true;
-      cardElement.classList.add('flipped');
-      onClick(card);
-    }
-  });
-
   return cardElement;
+}
+
+export function flipCard(target: HTMLElement): void {
+  const cardElement = target.closest('.game-card');
+  if (cardElement) {
+    cardElement.classList.add('flipped');
+  }
 }

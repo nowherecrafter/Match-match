@@ -4,6 +4,7 @@ import { Timer } from '../components/timer';
 import { GameDatabase } from "../services/db";
 import { CardData } from "../components/card";
 import { renderGameBoard } from '../components/gameBoard';
+import { flipCard } from "../components/card";
 
 export class GameManager {
   private timer: Timer;
@@ -18,9 +19,13 @@ export class GameManager {
     AppState.updateState({ gameStarted: true });
     this.timer.start();
 
-    await this.generateGameBoard((card: CardData) => {
-      // TODO: обработчик клика по карточке
-      //console.log("Card clicked", card);
+
+    await this.generateGameBoard((card: CardData, event: MouseEvent) => {
+      // Передаём event.target в flipCard
+
+      console.log("Card clicked", card);
+      const target = event.target as HTMLElement;
+      flipCard(target);  // Теперь передаём целевой элемент
     });
   }
 
@@ -34,7 +39,7 @@ export class GameManager {
     AppState.updateState({ gameTime: seconds });
   }
 
-  private async generateGameBoard(onCardClick: (card: CardData) => void): Promise<void> {
+  private async generateGameBoard(onCardClick: (card: CardData, event: MouseEvent) => void): Promise<void> {
     const db = new GameDatabase();
     await db.init();
     const settings = await db.getGameSettings();
@@ -80,3 +85,5 @@ export class GameManager {
     return array;
   }
 }
+
+

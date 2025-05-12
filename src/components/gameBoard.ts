@@ -1,9 +1,11 @@
+// src/components/gameBoard.ts
+
 import { CardData, createCard } from './card';
 
 export interface GameBoardOptions {
   cards: CardData[];
   difficulty: '4x4' | '6x6' | '8x8';
-  onCardClick: (card: CardData) => void;
+  onCardClick: (card: CardData, event: MouseEvent) => void;
 }
 
 export function renderGameBoard({ cards, difficulty, onCardClick }: GameBoardOptions): void {
@@ -20,28 +22,26 @@ export function renderGameBoard({ cards, difficulty, onCardClick }: GameBoardOpt
   for (let i = 0; i < numberOfRows; i++) {
     const row = document.createElement('div');
     row.classList.add('row');
-  
+
     for (let j = 0; j < cardsPerRow && cardIndex < cards.length; j++) {
       const card = cards[cardIndex++];
-      const cardElement = createCard({ card, onClick: onCardClick });
-  
+      const cardElement = createCard({ card });
+
+      // Централизованный обработчик
+      cardElement.addEventListener('click', (event) => {
+        onCardClick(card, event);
+      });
+
       const col = document.createElement('div');
-  
-      // Добавляем кастомный класс, если 8x8
-      if (difficulty === '8x8') {
-        col.classList.add('col-custom-8');
-      } else {
-        col.classList.add('col');
-      }
-  
+      col.classList.add(difficulty === '8x8' ? 'col-custom-8' : 'col');
+
       col.appendChild(cardElement);
       row.appendChild(col);
     }
-  
+
     board.appendChild(row);
   }
 
-  // Устанавливаем ширину gameBoard как 70% от высоты его родителя
   const parent = board.parentElement;
   if (parent) {
     board.style.width = `${window.innerHeight * 0.80}px`;
