@@ -68,3 +68,27 @@ export function unflipCard(target: HTMLElement): void {
     cardElement.classList.remove('flipped'); // Убираем класс 'flipped'
   }
 }
+
+export function markAsMatched(target: HTMLElement) {
+  const cardElement = target.closest('.card-inner'); // Ищем ближайший родительский элемент с классом game-card
+
+  if (cardElement) {
+    cardElement.classList.add('matched');
+  }
+}
+
+export function markAsUnmatched(target: HTMLElement) {
+  const cardElement = target.closest('.card-inner'); // Ищем ближайший родительский элемент с классом game-card
+
+  if (cardElement) {
+    cardElement.classList.add('unmatched');
+  }
+}
+
+export function clearUnmatched(target: HTMLElement) {
+  const cardElement = target.closest('.card-inner'); // Ищем ближайший родительский элемент с классом game-card
+
+  if (cardElement) {
+    cardElement.classList.remove('unmatched');
+  }
+}

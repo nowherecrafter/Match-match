@@ -1,7 +1,7 @@
 import { AppState } from "../services/state";
 import { Timer } from '../components/timer';
 import { GameDatabase } from "../services/db";
-import { CardData, flipCard, unflipCard } from "../components/card";
+import { CardData, flipCard, unflipCard, markAsMatched, markAsUnmatched, clearUnmatched } from "../components/card";
 import { renderGameBoard } from '../components/gameBoard';
 
 export class GameManager {
@@ -43,30 +43,38 @@ export class GameManager {
     this.openedCardElements = [];
   }
 
-  private checkForMatch() {
-    const [card1, card2] = this.flippedCards;
-    const [element1, element2] = this.openedCardElements;
+private checkForMatch() {
+  const [card1, card2] = this.flippedCards;
+  const [element1, element2] = this.openedCardElements;
 
-    if (card1.id === card2.id && element1 !== element2) {
-      // Карты совпали
-      card1.isMatched = true;
-      card2.isMatched = true;
+  if (card1.id === card2.id && element1 !== element2) {
+    card1.isMatched = true;
+    card2.isMatched = true;
+
+    markAsMatched(element1);
+    markAsMatched(element2);
+
+    this.flippedCards = [];
+    this.openedCardElements = [];
+  } else {
+    markAsUnmatched(element1);
+    markAsUnmatched(element2);
+
+    setTimeout(() => {
+      unflipCard(element1);
+      unflipCard(element2);
+
+      clearUnmatched(element1);
+      clearUnmatched(element2);
+
+      card1.isFlipped = false;
+      card2.isFlipped = false;
 
       this.flippedCards = [];
       this.openedCardElements = [];
-    } else {
-      // Не совпали — перевернуть обратно через 1 секунду
-      setTimeout(() => {
-        unflipCard(element1);
-        unflipCard(element2);
-        card1.isFlipped = false;
-        card2.isFlipped = false;
-
-        this.flippedCards = [];
-        this.openedCardElements = [];
-      }, 1000);
-    }
+    }, 1000);
   }
+}
 
   private updateGameTime(seconds: number) {
     AppState.updateState({ gameTime: seconds });
