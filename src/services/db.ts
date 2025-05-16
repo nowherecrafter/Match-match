@@ -144,51 +144,54 @@ export class GameDatabase {
     });
   }
 
-  // Получение топовых игроков
-  public async getTopPlayers(limit = 10): Promise<any[]> {
-    await this.ensureDb();
+public async getTopPlayers(limit = 10): Promise<Array<GameResult & { player: Player | null }>> {
+  await this.ensureDb();
 
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction(['players', 'results'], 'readonly');
-      const playersStore = tx.objectStore('players');
-      const resultsStore = tx.objectStore('results');
-      const scoreIndex = resultsStore.index('score');
-      const request = scoreIndex.openCursor(null, 'prev'); // Сортировка по убыванию баллов
+  return new Promise((resolve, reject) => {
+    const tx = this.db!.transaction(['players', 'results'], 'readonly');
+    const resultsStore = tx.objectStore('results');
+    const playersStore = tx.objectStore('players');
+    const scoreIndex = resultsStore.index('score');
 
-      const topPlayersMap = new Map<number, { playerId: number, bestScore: number }>();
-      const topPlayers: any[] = [];
+    const topResults: Array<GameResult & { player: Player | null }> = [];
 
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-        if (cursor) {
-          const result = cursor.value as GameResult;
-          if (!topPlayersMap.has(result.playerId)) {
-            topPlayersMap.set(result.playerId, { playerId: result.playerId, bestScore: result.score });
+    const request = scoreIndex.openCursor(null, 'prev'); // Сортировка по убыванию score
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor && topResults.length < limit) {
+        const result = cursor.value as GameResult;
+
+        const playerRequest = playersStore.get(result.playerId);
+        playerRequest.onsuccess = () => {
+          const player = playerRequest.result ?? null;
+          topResults.push({ ...result, player });
+
+          if (topResults.length < limit) {
+            cursor.continue();
           } else {
-            const playerData = topPlayersMap.get(result.playerId);
-            if (playerData && result.score > playerData.bestScore) {
-              playerData.bestScore = result.score;
-            }
+            resolve(topResults);
           }
-          cursor.continue();
-        } else {
-          topPlayersMap.forEach((value) => {
-            const playerRequest = playersStore.get(value.playerId);
-            playerRequest.onsuccess = () => {
-              const player = playerRequest.result;
-              if (player) {
-                topPlayers.push({ ...player, bestScore: value.bestScore });
-              }
+        };
 
-              if (topPlayers.length === topPlayersMap.size) {
-                resolve(topPlayers.slice(0, limit)); // Ограничиваем вывод топ-игроками
-              }
-            };
-          });
-        }
-      };
+        playerRequest.onerror = () => {
+          topResults.push({ ...result, player: null });
+          if (topResults.length < limit) {
+            cursor.continue();
+          } else {
+            resolve(topResults);
+          }
+        };
+      }
 
-      request.onerror = () => reject('Error fetching top players');
-    });
-  }
+      // Если курсор завершён досрочно
+      if (!cursor) {
+        resolve(topResults);
+      }
+    };
+
+    request.onerror = () => reject('Error fetching top players');
+  });
+}
+
 }
