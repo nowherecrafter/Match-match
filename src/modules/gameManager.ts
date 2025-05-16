@@ -1,26 +1,24 @@
 import { AppState } from "../services/state";
 import { Timer } from '../components/timer';
 import { GameDatabase } from "../services/db";
-import { GameOverOverlay } from '../components/gameOverOverlay';
 import {
   CardData,
   flipCard,
   unflipCard,
   markAsMatched,
   markAsUnmatched,
-  clearUnmatched
+  clearUnmatched,
 } from "../components/card";
 import { renderGameBoard } from '../components/gameBoard';
+import { GameOverOverlay } from '../components/gameOverOverlay';
 
 export class GameManager {
   private timer: Timer;
   private flippedCards: CardData[] = [];
   private openedCardElements: HTMLElement[] = [];
-  private matchedCount = 0;
-  private totalCards = 0;
-  private totalComparisons = 0;
-  private errorComparisons = 0;
-  private db = new GameDatabase();
+  private comparisonsCount = 0;
+  private wrongComparisonsCount = 0;
+  private cards: CardData[] = []; // Хранит все карты игры
 
   constructor() {
     this.timer = new Timer(this.updateGameTime);
@@ -29,7 +27,9 @@ export class GameManager {
   async startGame() {
     if (AppState.getState().gameStarted) return;
 
-    AppState.updateState({ gameStarted: true });
+    this.comparisonsCount = 0;
+    this.wrongComparisonsCount = 0;
+    AppState.updateState({ gameStarted: true, gameTime: 0 });
     this.timer.start();
 
     await this.generateGameBoard((card: CardData, event: MouseEvent) => {
@@ -43,7 +43,7 @@ export class GameManager {
       this.openedCardElements.push(target);
 
       if (this.flippedCards.length === 2) {
-        this.totalComparisons++;
+        this.comparisonsCount++;
         this.checkForMatch();
       }
     });
@@ -55,12 +55,9 @@ export class GameManager {
     this.timer.reset();
     this.flippedCards = [];
     this.openedCardElements = [];
-    this.matchedCount = 0;
-    this.totalComparisons = 0;
-    this.errorComparisons = 0;
   }
 
-  private async checkForMatch() {
+  private checkForMatch() {
     const [card1, card2] = this.flippedCards;
     const [element1, element2] = this.openedCardElements;
 
@@ -73,19 +70,19 @@ export class GameManager {
 
       this.flippedCards = [];
       this.openedCardElements = [];
-      this.matchedCount += 2;
 
-      if (this.matchedCount === this.totalCards) {
-        await this.finishGame();
+      if (this.isGameOver()) {
+        this.finishGame();
       }
     } else {
+      this.wrongComparisonsCount++;
       markAsUnmatched(element1);
       markAsUnmatched(element2);
-      this.errorComparisons++;
 
       setTimeout(() => {
         unflipCard(element1);
         unflipCard(element2);
+
         clearUnmatched(element1);
         clearUnmatched(element2);
 
@@ -98,6 +95,37 @@ export class GameManager {
     }
   }
 
+  private isGameOver(): boolean {
+    return this.cards.length > 0 && this.cards.every(card => card.isMatched);
+  }
+
+  private async finishGame() {
+    this.timer.stop();
+    AppState.updateState({ gameStarted: false });
+
+    const { gameTime } = AppState.getState();
+
+    const score =
+      Math.max(0, (this.comparisonsCount - this.wrongComparisonsCount) * 100 - gameTime * 10);
+
+    const db = new GameDatabase();
+    await db.init();
+
+    const playerId = AppState.getState().currentPlayerId;
+    if (playerId !== null) {
+      await db.addGameResult({
+        playerId,
+        score,
+        time: gameTime,
+        date: new Date(),
+        difficulty: (await db.getGameSettings())?.difficulty || '4x4',
+        cardType: (await db.getGameSettings())?.cardType || 'classic',
+      });
+    }
+
+    GameOverOverlay.show(score);
+  }
+
   private updateGameTime = (seconds: number) => {
     AppState.updateState({ gameTime: seconds });
   };
@@ -105,8 +133,9 @@ export class GameManager {
   private async generateGameBoard(
     onCardClick: (card: CardData, event: MouseEvent) => void
   ): Promise<void> {
-    await this.db.init();
-    const settings = await this.db.getGameSettings();
+    const db = new GameDatabase();
+    await db.init();
+    const settings = await db.getGameSettings();
 
     const difficultyMap: Record<string, number> = {
       '4x4': 16,
@@ -116,7 +145,6 @@ export class GameManager {
 
     const cardCount = difficultyMap[settings?.difficulty] || 16;
     const uniqueCardCount = cardCount / 2;
-    this.totalCards = cardCount;
 
     const images = Array.from({ length: uniqueCardCount }, (_, i) =>
       `assets/images/${settings?.cardType}/Animal_${i + 1}.png`
@@ -131,6 +159,7 @@ export class GameManager {
     });
 
     cards = this.shuffle(cards);
+    this.cards = cards; // <-- сохраняем состояние
 
     renderGameBoard({
       cards,
@@ -145,35 +174,5 @@ export class GameManager {
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-  }
-
-  private async finishGame() {
-    this.timer.stop();
-    AppState.updateState({ gameStarted: false });
-
-    const { gameTime, currentPlayerId } = AppState.getState();
-    let score = (this.totalComparisons - this.errorComparisons) * 100 - gameTime * 10;
-    score = Math.max(score, 0);
-
-    const settings = await this.db.getGameSettings();
-
-    if (currentPlayerId) {
-      await this.db.addGameResult({
-        playerId: currentPlayerId,
-        score,
-        time: gameTime,
-        date: new Date(),
-        difficulty: settings?.difficulty || 'unknown',
-        cardType: settings?.cardType || 'unknown',
-      });
-    }
-
-    const app = document.getElementById('app');
-    if (app) {
-      const overlay = new GameOverOverlay(score, () => {
-        window.location.href = '/best-score';
-      });
-      overlay.show(app);
-    }
   }
 }

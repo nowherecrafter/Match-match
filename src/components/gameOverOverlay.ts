@@ -1,26 +1,21 @@
 export class GameOverOverlay {
-  private container: HTMLElement;
+  static show(score: number): void {
+    if (document.getElementById('gameOverOverlay')) return;
 
-  constructor(private score: number, private onLeaderboardClick: () => void) {
-    this.container = document.createElement('div');
-    this.container.id = 'gameOverOverlay';
+    const container = document.createElement('div');
+    container.id = 'gameOverOverlay';
 
-    this.container.innerHTML = `
-      <div class="game-over-message">Поздравляем! Игра окончена.</div>
-      <div class="game-over-score">Ваш результат: ${score} очков</div>
-      <button id="goToLeaderboardBtn" class="game-over-button">Перейти к рекордам</button>
+    container.innerHTML = `
+      <div class="game-over-message">Игра завершена!</div>
+      <div class="game-over-score">Очки: ${score}</div>
+      <button id="goToLeaderboardBtn" class="game-over-button">Таблица рекордов</button>
     `;
 
-    this.container.querySelector('#goToLeaderboardBtn')?.addEventListener('click', () => {
-      this.onLeaderboardClick();
+    const btn = container.querySelector('#goToLeaderboardBtn');
+    btn?.addEventListener('click', () => {
+      window.location.href = '/best-score';
     });
-  }
 
-  show(parent: HTMLElement) {
-    parent.appendChild(this.container);
-  }
-
-  hide() {
-    this.container.remove();
+    document.body.appendChild(container);
   }
 }
