@@ -2,6 +2,9 @@ import { AppState } from '../services/state';
 import { GameDatabase } from '../services/db';
 import { Player } from '../types';
 
+/**
+ * Modal component for user login by email.
+ */
 export class LoginModal {
   private modalElement: HTMLDivElement;
 
@@ -12,11 +15,17 @@ export class LoginModal {
     this.setupEventListeners();
   }
 
+  /**
+   * Validates email format using regex.
+   */
   private validateEmail(email: string): boolean {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email.trim());
   }
 
+  /**
+   * Constructs the modal's HTML structure.
+   */
   private createModal(): HTMLDivElement {
     const div = document.createElement('div');
     div.classList.add('modalform');
@@ -36,44 +45,57 @@ export class LoginModal {
     return div;
   }
 
+  /**
+   * Sets up all relevant event listeners for modal interactivity.
+   */
   private setupEventListeners(): void {
-    this.modalElement.querySelector('.modalform-backdrop')!
-      .addEventListener('click', () => this.hide());
-    this.modalElement.querySelector('.modalform-close')!
-      .addEventListener('click', () => this.hide());
-    this.modalElement.querySelector('#login-form')!
-      .addEventListener('submit', (e) => this.handleSubmit(e));
+    this.modalElement.querySelector('.modalform-backdrop')?.addEventListener('click', () => this.hide());
+    this.modalElement.querySelector('.modalform-close')?.addEventListener('click', () => this.hide());
+    this.modalElement.querySelector('#login-form')?.addEventListener('submit', (e) => this.handleSubmit(e));
   }
 
+  /**
+   * Displays the login modal.
+   */
   public show(): void {
     this.modalElement.style.display = 'flex';
   }
 
+  /**
+   * Hides the login modal.
+   */
   public hide(): void {
     this.modalElement.style.display = 'none';
   }
 
+  /**
+   * Handles the login form submission and authentication.
+   */
   private async handleSubmit(event: Event): Promise<void> {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
-    const em = (form.querySelector('#email') as HTMLInputElement);
+    const emailInput = form.querySelector<HTMLInputElement>('#email');
+    if (!emailInput) return;
 
-    em.classList.remove('input-error');
-    if (!this.validateEmail(em.value)) {
-      em.classList.add('input-error');
+    const email = emailInput.value.trim();
+    emailInput.classList.remove('input-error');
+
+    if (!this.validateEmail(email)) {
+      emailInput.classList.add('input-error');
       return;
     }
 
     try {
       const db = new GameDatabase();
       await db.init();
+
       const tx = (db as any).db.transaction('players', 'readonly');
       const store = tx.objectStore('players');
-      const idx = store.index('email');
-      const req = idx.get(em.value);
+      const index = store.index('email');
+      const request = index.get(email);
 
-      req.onsuccess = () => {
-        const player: Player = req.result;
+      request.onsuccess = () => {
+        const player: Player = request.result;
         if (player?.id != null) {
           AppState.updateState({ isAuthenticated: true, currentPlayerId: player.id });
           this.hide();
@@ -81,9 +103,12 @@ export class LoginModal {
           alert('No player with this email.');
         }
       };
-      req.onerror = () => alert('Error during login.');
-    } catch (err) {
-      console.error('Login failed:', err);
+
+      request.onerror = () => {
+        alert('Error during login.');
+      };
+    } catch (error) {
+      console.error('Login failed:', error);
       alert('Login failed, please try again.');
     }
   }

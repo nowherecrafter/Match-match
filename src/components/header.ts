@@ -1,9 +1,12 @@
 import { AppState } from '../services/state';
 import { GameDatabase } from '../services/db';
 import { RegistrationModal } from './registrationModal';
-import { LoginModal } from './loginModal';  // ← импорт модалки логина
+import { LoginModal } from './loginModal';
 import md5 from 'md5';
 
+/**
+ * Generates a Gravatar URL from a user email.
+ */
 function getGravatarUrl(email: string, size = 40): string {
   const hash = md5(email.trim().toLowerCase());
   return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`;
@@ -13,21 +16,24 @@ class Header {
   private static instance: Header;
   private element: HTMLElement;
   private isMounted = false;
-  private registrationModal: RegistrationModal;
-  private loginModal: LoginModal;  // ← поле для модалки логина
+
+  private registrationModal = new RegistrationModal();
+  private loginModal = new LoginModal();
 
   private constructor() {
-    this.registrationModal = new RegistrationModal();
-    this.loginModal = new LoginModal();            // ← создаём экземпляр
     this.element = this.createHeader();
     this.setupEventListeners();
     this.subscribeToState();
     this.updateUI(AppState.getState());
   }
 
+  /**
+   * Creates and returns the header DOM element.
+   */
   private createHeader(): HTMLElement {
     const header = document.createElement('header');
-    header.classList.add('game-header');
+    header.className = 'game-header';
+
     header.innerHTML = `
       <div class="logo">
         <div class="logo__part logo__part--top">MATCH</div>
@@ -37,15 +43,15 @@ class Header {
       <nav class="game-nav">
         <a href="/about" class="nav-link">About Game</a>
         <a href="/best-score" class="nav-link">Best Score</a>
-        <a href="/settings" class="nav-link">Game Settings</a> <!-- Ссылка на страницу настроек -->
+        <a href="/settings" class="nav-link">Game Settings</a>
       </nav>
 
       <div class="header-actions">
         <button class="btn btn--register hidden" id="registerBtn">Register New Player</button>
-        <button class="btn btn--login hidden"    id="loginBtn">Login</button>           <!-- ← кнопка логина -->
+        <button class="btn btn--login hidden"    id="loginBtn">Login</button>
         <button class="btn btn--start hidden"    id="startGameBtn">Start Game</button>
         <button class="btn btn--stop hidden"     id="stopGameBtn">End Game</button>
-        <div class="user-avatar hidden"         id="userAvatar">
+        <div class="user-avatar hidden"          id="userAvatar">
           <img src="assets/default-avatar.png" alt="User">
         </div>
       </div>
@@ -53,6 +59,9 @@ class Header {
     return header;
   }
 
+  /**
+   * Binds event listeners for all header controls.
+   */
   private setupEventListeners(): void {
     this.element.querySelector('#startGameBtn')?.addEventListener('click', () => {
       window.location.href = '/game';
@@ -68,24 +77,23 @@ class Header {
     });
 
     this.element.querySelector('#loginBtn')?.addEventListener('click', () => {
-      this.loginModal.show();  // ← показываем модалку логина
+      this.loginModal.show();
     });
   }
 
+  /**
+   * Subscribes to app state changes.
+   */
   private subscribeToState(): void {
     document.addEventListener('stateChanged', () => {
       this.updateUI(AppState.getState());
     });
   }
 
-  public static getInstance(): Header {
-    if (!Header.instance) {
-      Header.instance = new Header();
-    }
-    return Header.instance;
-  }
-
-  public mount(containerId: string = 'header-container'): void {
+  /**
+   * Mounts the header into the DOM, only once.
+   */
+  public mount(containerId = 'header-container'): void {
     if (this.isMounted) return;
     const container = document.getElementById(containerId);
     if (container) {
@@ -94,41 +102,58 @@ class Header {
     }
   }
 
+  /**
+   * Updates UI elements based on the current app state.
+   */
   public updateUI(state: typeof AppState.state): void {
     const { isAuthenticated, gameStarted, currentPlayerId } = state;
 
     this.toggleElement('registerBtn', !isAuthenticated);
-    this.toggleElement('loginBtn',    !isAuthenticated);  // ← показываем/скрываем
+    this.toggleElement('loginBtn',    !isAuthenticated);
     this.toggleElement('userAvatar',   isAuthenticated);
     this.toggleElement('startGameBtn', isAuthenticated && !gameStarted);
     this.toggleElement('stopGameBtn',  isAuthenticated && gameStarted);
 
     if (isAuthenticated && currentPlayerId !== null) {
-      const avatarImg = document.querySelector('#userAvatar img') as HTMLImageElement | null;
-      if (avatarImg) {
-        const db = new GameDatabase();
-        db.init().then(() => {
-          const tx = (db as any).db.transaction('players', 'readonly');
-          const store = tx.objectStore('players');
-          const request = store.get(currentPlayerId);
-
-          request.onsuccess = () => {
-            const player = request.result;
-            if (player && player.email) {
-              avatarImg.src = getGravatarUrl(player.email);
-            }
-          };
-        });
-      }
+      this.loadUserAvatar(currentPlayerId);
     }
   }
 
+  /**
+   * Dynamically shows or hides an element by ID.
+   */
   private toggleElement(id: string, show: boolean): void {
     const el = document.getElementById(id);
-    if (el) {
-      if (show) el.classList.remove('hidden');
-      else      el.classList.add('hidden');
+    el?.classList.toggle('hidden', !show);
+  }
+
+  /**
+   * Loads the user avatar using Gravatar, if available.
+   */
+  private async loadUserAvatar(playerId: number): Promise<void> {
+    const avatarImg = document.querySelector('#userAvatar img') as HTMLImageElement | null;
+    if (!avatarImg) return;
+
+    const db = new GameDatabase();
+    await db.init();
+
+    const tx = (db as any).db.transaction('players', 'readonly');
+    const store = tx.objectStore('players');
+    const request = store.get(playerId);
+
+    request.onsuccess = () => {
+      const player = request.result;
+      if (player?.email) {
+        avatarImg.src = getGravatarUrl(player.email);
+      }
+    };
+  }
+
+  public static getInstance(): Header {
+    if (!Header.instance) {
+      Header.instance = new Header();
     }
+    return Header.instance;
   }
 }
 
