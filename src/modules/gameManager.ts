@@ -14,14 +14,23 @@ import { GameOverOverlay } from '../components/gameOverOverlay';
 
 export class GameManager {
   private timer: Timer;
+  private intervalId: number | null = null;
+  private gameTime: number = 0;
+
   private flippedCards: CardData[] = [];
   private openedCardElements: HTMLElement[] = [];
   private comparisonsCount = 0;
   private wrongComparisonsCount = 0;
-  private cards: CardData[] = []; // Хранит все карты игры
+  private cards: CardData[] = [];
 
   constructor() {
-    this.timer = new Timer(this.updateGameTime);
+    this.timer = new Timer();
+
+    // Subscribe to state changes (assuming AppState supports events)
+    document.addEventListener('stateChanged', () => {
+      const { gameTime } = AppState.getState();
+      this.timer.render(gameTime || 0);
+    });
   }
 
   async startGame() {
@@ -29,8 +38,9 @@ export class GameManager {
 
     this.comparisonsCount = 0;
     this.wrongComparisonsCount = 0;
+    this.gameTime = 0;
     AppState.updateState({ gameStarted: true, gameTime: 0 });
-    this.timer.start();
+    this.startTimer();
 
     await this.generateGameBoard((card: CardData, event: MouseEvent) => {
       if (this.flippedCards.length >= 2 || card.isFlipped || card.isMatched) return;
@@ -51,10 +61,26 @@ export class GameManager {
 
   stopGame() {
     AppState.updateState({ gameStarted: false });
-    this.timer.stop();
-    this.timer.reset();
+    this.stopTimer();
+    AppState.updateState({ gameTime: 0 });
     this.flippedCards = [];
     this.openedCardElements = [];
+  }
+
+  private startTimer() {
+    if (this.intervalId !== null) return;
+
+    this.intervalId = window.setInterval(() => {
+      this.gameTime++;
+      AppState.updateState({ gameTime: this.gameTime });
+    }, 1000);
+  }
+
+  private stopTimer() {
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 
   private checkForMatch() {
@@ -100,7 +126,7 @@ export class GameManager {
   }
 
   private async finishGame() {
-    this.timer.stop();
+    this.stopTimer();
     AppState.updateState({ gameStarted: false });
 
     const { gameTime } = AppState.getState();
@@ -125,10 +151,6 @@ export class GameManager {
 
     GameOverOverlay.show(score);
   }
-
-  private updateGameTime = (seconds: number) => {
-    AppState.updateState({ gameTime: seconds });
-  };
 
   private async generateGameBoard(
     onCardClick: (card: CardData, event: MouseEvent) => void
@@ -159,7 +181,7 @@ export class GameManager {
     });
 
     cards = this.shuffle(cards);
-    this.cards = cards; // <-- сохраняем состояние
+    this.cards = cards;
 
     renderGameBoard({
       cards,
