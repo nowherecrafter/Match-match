@@ -3,6 +3,33 @@ import { GameManager } from '../modules/gameManager';
 
 const gameManager = new GameManager();
 
+let isTimerListenerActive = false;
+
+/**
+ * Creates and returns the game layout DOM structure.
+ */
+function createGameLayout(): HTMLElement {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'content-wrapper';
+
+  const container = document.createElement('div');
+  container.className = 'main-container d-flex flex-column align-items-center';
+
+  const timer = document.createElement('div');
+  timer.id = 'timer';
+  timer.className = 'timer my-4';
+  timer.textContent = '00:00';
+
+  const board = document.createElement('div');
+  board.id = 'gameBoard';
+  board.className = 'container';
+
+  container.append(timer, board);
+  wrapper.appendChild(container);
+
+  return wrapper;
+}
+
 /**
  * Updates the timer UI with the current time from the AppState.
  */
@@ -23,31 +50,18 @@ export function loadGame(): void {
   const app = document.getElementById('app');
   if (!app) return;
 
-  // Create game layout once using a DocumentFragment for better performance
-  const wrapper = document.createElement('div');
-  wrapper.className = 'content-wrapper';
-
-  const container = document.createElement('div');
-  container.className = 'main-container d-flex flex-column align-items-center';
-
-  const timer = document.createElement('div');
-  timer.id = 'timer';
-  timer.className = 'timer my-4';
-  timer.textContent = '00:00';
-
-  const board = document.createElement('div');
-  board.id = 'gameBoard';
-  board.className = 'container';
-
-  container.append(timer, board);
-  wrapper.appendChild(container);
-
   // Clear previous content and render new structure
   app.innerHTML = '';
-  app.appendChild(wrapper);
+  app.appendChild(createGameLayout());
 
-  // Listen for state updates to update the timer UI
-  document.addEventListener('stateChanged', updateTimerDisplay);
+  // Immediately update timer display on load
+  updateTimerDisplay();
+
+  // Add event listener for timer updates if not already added
+  if (!isTimerListenerActive) {
+    document.addEventListener('stateChanged', updateTimerDisplay);
+    isTimerListenerActive = true;
+  }
 
   // Start game if not already running
   if (!AppState.getState().gameStarted) {
@@ -60,5 +74,9 @@ export function loadGame(): void {
  */
 export function unloadGame(): void {
   gameManager.stopGame();
-  document.removeEventListener('stateChanged', updateTimerDisplay);
+
+  if (isTimerListenerActive) {
+    document.removeEventListener('stateChanged', updateTimerDisplay);
+    isTimerListenerActive = false;
+  }
 }
