@@ -1,5 +1,5 @@
 import { header } from './components/header';
-import { Router } from './components/router';
+import { Router } from './modules/router';
 import { AppState } from './services/state';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import * as bootstrap from 'bootstrap';  
