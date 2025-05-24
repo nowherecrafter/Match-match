@@ -65,10 +65,13 @@
 .instruction-image {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  height: 100%;
-  max-width: 120px;
-  object-fit: cover;
-  width: 100%;
+  display: block;
+  max-width: 100%;
+  height: auto;
+  min-width: 120px;
+  min-height: 90px;
+  object-fit: contain;
+  margin-left: 10%;
 }
 
 /* ===== Base Button Style ===== */
