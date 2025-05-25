@@ -4,6 +4,12 @@ export class GameDatabase {
   private readonly dbName = 'memory-game';
   private db: IDBDatabase | null = null;
 
+  private readonly stores = {
+    players: 'players',
+    results: 'results',
+    settings: 'settings',
+  };
+
   private predefinedPlayers: Player[] = [
     { id: 1, firstName: 'Noe', lastName: 'Ware', email: 'nowherecrafter@gmail.com' },
     { id: 2, firstName: 'Ivan', lastName: 'Derban', email: 'ivan.derban.dev@gmail.com' },
@@ -14,12 +20,14 @@ export class GameDatabase {
     { playerId: 2, score: 4700, time: 110, date: new Date(), difficulty: '4x4', cardType: 'classic' },
   ];
 
-  // Инициализация базы данных
+  /**
+   * Initialize the database and object stores.
+   */
   public async init(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const dbRequest = indexedDB.open(this.dbName, 2);  // Увеличиваем версию базы данных
+      const dbRequest = indexedDB.open(this.dbName, 2);
 
-      dbRequest.onerror = () => reject('An error occurred during opening the database');
+      dbRequest.onerror = () => reject(new Error('An error occurred during opening the database'));
 
       dbRequest.onsuccess = () => {
         this.db = dbRequest.result;
@@ -29,169 +37,172 @@ export class GameDatabase {
       dbRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
         const db = (event.target as IDBRequest<IDBDatabase>).result;
 
-        // Создаем объект хранилища для игроков
-        if (!db.objectStoreNames.contains('players')) {
-          const playersStore = db.createObjectStore('players', {
+        if (!db.objectStoreNames.contains(this.stores.players)) {
+          const playersStore = db.createObjectStore(this.stores.players, {
             keyPath: 'id',
-            autoIncrement: true, // ID autogeneration
+            autoIncrement: true,
           });
           playersStore.createIndex('email', 'email', { unique: true });
+
+          playersStore.transaction!.oncomplete = () => {
+            const tx = db.transaction(this.stores.players, 'readwrite');
+            const store = tx.objectStore(this.stores.players);
+            this.predefinedPlayers.forEach(player => store.add(player));
+          };
         }
 
-        // Создаем объект хранилища для результатов игры
-        if (!db.objectStoreNames.contains('results')) {
-          const resultsStore = db.createObjectStore('results', {
+        if (!db.objectStoreNames.contains(this.stores.results)) {
+          const resultsStore = db.createObjectStore(this.stores.results, {
             keyPath: 'id',
-            autoIncrement: true, // ID autogeneration
+            autoIncrement: true,
           });
           resultsStore.createIndex('playerId', 'playerId', { unique: false });
           resultsStore.createIndex('score', 'score', { unique: false });
           resultsStore.createIndex('date', 'date', { unique: false });
+
+          resultsStore.transaction!.oncomplete = () => {
+            const tx = db.transaction(this.stores.results, 'readwrite');
+            const store = tx.objectStore(this.stores.results);
+            this.predefinedResults.forEach(result => store.add(result));
+          };
         }
 
-        // Создаем объект хранилища для настроек игры
-        if (!db.objectStoreNames.contains('settings')) {
-          const settingsStore = db.createObjectStore('settings', {
+        if (!db.objectStoreNames.contains(this.stores.settings)) {
+          const settingsStore = db.createObjectStore(this.stores.settings, {
             keyPath: 'name',
           });
           settingsStore.createIndex('name', 'name', { unique: true });
         }
 
-        const target = event.target as IDBRequest<IDBDatabase>;
-        target.onsuccess = () => {
-          this.db = target.result;
-          resolve();
-        };
+        this.db = db;
+        resolve();
       };
     });
   }
 
-  // Ожидание и проверка базы данных
+  /**
+   * Ensure the database is initialized.
+   */
   private async ensureDb(): Promise<void> {
     if (!this.db) {
       await this.init();
     }
   }
 
-  // Добавление игрока
-  public async addPlayer(player: Omit<Player, 'id'>): Promise<number> {
+  /**
+   * Generic helper to run an IndexedDB transaction.
+   */
+  private async runTransaction<T>(
+    storeName: string,
+    mode: IDBTransactionMode,
+    operation: (store: IDBObjectStore) => IDBRequest
+  ): Promise<T> {
     await this.ensureDb();
 
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('players', 'readwrite');
-      const store = tx.objectStore('players');
-      const request = store.add(player);
+    return new Promise<T>((resolve, reject) => {
+      const tx = this.db!.transaction(storeName, mode);
+      const store = tx.objectStore(storeName);
+      const request = operation(store);
 
-      request.onsuccess = () => resolve(request.result as number); // Возвращаем сгенерированный ID
-      request.onerror = () => reject('An error occurred while saving the player');
+      request.onsuccess = () => resolve(request.result as T);
+      request.onerror = () => reject(new Error(`Transaction failed on store "${storeName}"`));
     });
   }
 
-  // Добавление результата игры
-  public async addGameResult(result: GameResult): Promise<number> {
-    await this.ensureDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('results', 'readwrite');
-      const store = tx.objectStore('results');
-      const request = store.add(result);
-
-      request.onsuccess = () => resolve(request.result as number); // Возвращаем сгенерированный ID
-      request.onerror = () => reject('An error occurred while saving the game result');
-    });
+  /**
+   * Add a new player.
+   */
+  public addPlayer(player: Omit<Player, 'id'>): Promise<number> {
+    return this.runTransaction<number>(this.stores.players, 'readwrite', store => store.add(player));
   }
 
-  // Добавление настроек игры
-  public async addGameSettings(settings: { cardType: string, difficulty: string }): Promise<void> {
-    await this.ensureDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('settings', 'readwrite');
-      const store = tx.objectStore('settings');
-      const request = store.put({ name: 'gameSettings', ...settings }); // Сохраняем настройки с уникальным ключом
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject('An error occurred while saving the game settings');
-    });
+  /**
+   * Add a game result.
+   */
+  public addGameResult(result: GameResult): Promise<number> {
+    return this.runTransaction<number>(this.stores.results, 'readwrite', store => store.add(result));
   }
 
-  // Получение настроек игры
-  public async getGameSettings(): Promise<any | null> {
-    await this.ensureDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('settings', 'readonly');
-      const store = tx.objectStore('settings');
-      const request = store.get('gameSettings'); // Получаем настройки по имени
-
-      request.onsuccess = () => resolve(request.result ?? null);
-      request.onerror = () => reject('An error occurred while fetching the game settings');
-    });
+  /**
+   * Save game settings.
+   */
+  public addGameSettings(settings: { cardType: string; difficulty: string }): Promise<void> {
+    return this.runTransaction<void>(this.stores.settings, 'readwrite', store =>
+      store.put({ name: 'gameSettings', ...settings })
+    );
   }
 
-  // Получение игрока по email
-  public async getPlayerByEmail(email: string): Promise<any | null> {
-    await this.ensureDb();
+  /**
+   * Get saved game settings.
+   */
+  public async getGameSettings(): Promise<{ cardType: string; difficulty: string } | null> {
+    return this.runTransaction(this.stores.settings, 'readonly', store => store.get('gameSettings'));
+  }
 
+  /**
+   * Get a player by email.
+   */
+  public async getPlayerByEmail(email: string): Promise<Player | null> {
+    await this.ensureDb();
     return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction('players', 'readonly');
-      const store = tx.objectStore('players');
+      const tx = this.db!.transaction(this.stores.players, 'readonly');
+      const store = tx.objectStore(this.stores.players);
       const index = store.index('email');
       const request = index.get(email);
 
       request.onsuccess = () => resolve(request.result ?? null);
-      request.onerror = () => reject('An error occurred while fetching the player');
+      request.onerror = () => reject(new Error('An error occurred while fetching the player'));
     });
   }
 
-public async getTopPlayers(limit = 10): Promise<Array<GameResult & { player: Player | null }>> {
-  await this.ensureDb();
+  /**
+   * Get top players by highest scores, including player data.
+   */
+  public async getTopPlayers(limit = 10): Promise<Array<GameResult & { player: Player | null }>> {
+    await this.ensureDb();
 
-  return new Promise((resolve, reject) => {
-    const tx = this.db!.transaction(['players', 'results'], 'readonly');
-    const resultsStore = tx.objectStore('results');
-    const playersStore = tx.objectStore('players');
-    const scoreIndex = resultsStore.index('score');
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction([this.stores.players, this.stores.results], 'readonly');
+      const resultsStore = tx.objectStore(this.stores.results);
+      const playersStore = tx.objectStore(this.stores.players);
+      const scoreIndex = resultsStore.index('score');
 
-    const topResults: Array<GameResult & { player: Player | null }> = [];
+      const topResults: Array<GameResult & { player: Player | null }> = [];
 
-    const request = scoreIndex.openCursor(null, 'prev'); // Сортировка по убыванию score
+      const request = scoreIndex.openCursor(null, 'prev');
 
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-      if (cursor && topResults.length < limit) {
-        const result = cursor.value as GameResult;
+      request.onsuccess = async (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 
-        const playerRequest = playersStore.get(result.playerId);
-        playerRequest.onsuccess = () => {
-          const player = playerRequest.result ?? null;
-          topResults.push({ ...result, player });
+        if (cursor && topResults.length < limit) {
+          const result = cursor.value as GameResult;
+          const playerRequest = playersStore.get(result.playerId);
 
-          if (topResults.length < limit) {
-            cursor.continue();
-          } else {
-            resolve(topResults);
-          }
-        };
+          playerRequest.onsuccess = () => {
+            const player = playerRequest.result ?? null;
+            topResults.push({ ...result, player });
 
-        playerRequest.onerror = () => {
-          topResults.push({ ...result, player: null });
-          if (topResults.length < limit) {
-            cursor.continue();
-          } else {
-            resolve(topResults);
-          }
-        };
-      }
+            if (topResults.length < limit) {
+              cursor.continue();
+            } else {
+              resolve(topResults);
+            }
+          };
 
-      // Если курсор завершён досрочно
-      if (!cursor) {
-        resolve(topResults);
-      }
-    };
+          playerRequest.onerror = () => {
+            topResults.push({ ...result, player: null });
+            if (topResults.length < limit) {
+              cursor.continue();
+            } else {
+              resolve(topResults);
+            }
+          };
+        } else if (!cursor) {
+          resolve(topResults);
+        }
+      };
 
-    request.onerror = () => reject('Error fetching top players');
-  });
-}
-
+      request.onerror = () => reject(new Error('Error fetching top players'));
+    });
+  }
 }

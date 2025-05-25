@@ -1,4 +1,4 @@
-/* ===== Main Layout and Containers ===== */
+/* ===== Layout & Containers ===== */
 .main-container {
   background-color: #e0e0e0;
   padding: 40px;
@@ -22,38 +22,24 @@
 }
 
 .instruction-row {
-  align-items: stretch;
   display: flex;
+  align-items: stretch;
   margin-bottom: 40px;
 }
 
 .instruction-step {
+  display: flex;
   align-items: center;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
   padding: 20px;
 }
 
 .instruction-content {
-  align-items: center;
   display: flex;
+  align-items: center;
   gap: 20px;
-}
-
-.step-number {
-  align-items: center;
-  background-color: #3498db;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  flex-shrink: 0;
-  font-size: 18px;
-  font-weight: bold;
-  height: 36px;
-  justify-content: center;
-  width: 36px;
 }
 
 .instruction-content p {
@@ -63,34 +49,32 @@
 }
 
 .instruction-image {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: block;
   max-width: 100%;
-  height: auto;
   min-width: 120px;
   min-height: 90px;
-  object-fit: contain;
+  height: auto;
   margin-left: 10%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  object-fit: contain;
 }
 
-/* ===== Base Button Style ===== */
-.btn {
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  padding: 8px 16px;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background-color: #3498db;
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.hidden {
-  display: none !important;
-}
-
-
-/* ===== Best Score List ===== */
+/* ===== Score List ===== */
 .score-list {
   list-style: none;
   margin: 0;
@@ -125,9 +109,9 @@
 }
 
 .score-item-details {
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 .score-item-name {
@@ -136,8 +120,8 @@
 }
 
 .score-item-email {
-  color: #777;
   font-size: 14px;
+  color: #777;
 }
 
 .score-item-score {
@@ -147,43 +131,34 @@
 
 .score-item-score-text {
   font-size: 16px;
-  color: #333; /* обычный цвет для текста "score" */
+  color: #333;
   margin-right: 8px;
 }
 
 .score-item-score-number {
   font-size: 16px;
-  color: #3498db; /* синий цвет для числа */
+  color: #3498db;
 }
 
+/* ===== Divider ===== */
 .divider {
   border: 0;
   border-top: 1px solid #333;
   margin: 10px 0;
 }
 
-/* ===== Registration Modal Updated Styles ===== */
-.registration-modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+/* ===== Buttons ===== */
+.btn {
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.registration-backdrop {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.registration-content {
-  position: relative;
-  background: #fff;
-  padding: 30px 40px;
-  border-radius: 16px;
-  z-index: 1001;
-  max-width: 400px;
-  width: 90%;
+/* ===== Utility Classes ===== */
+.hidden {
+  display: none !important;
 }

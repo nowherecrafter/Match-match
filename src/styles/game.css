@@ -1,3 +1,24 @@
+/* ===== Grid & Layout ===== */
+.col {
+  padding-left: calc(var(--bs-gutter-x) * 0.1) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.1) !important;
+}
+
+.col-custom-8 {
+  flex: 0 0 12.5%;
+  max-width: 12.5%;
+  padding-left: calc(var(--bs-gutter-x) * 0.1) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.1) !important;
+}
+
+#gameBoard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* ===== Game Card ===== */
 .game-card {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -9,12 +30,6 @@
   object-fit: contain;
 }
 
-.col {
-  padding-left: calc(var(--bs-gutter-x) * 0.1) !important;
-  padding-right: calc(var(--bs-gutter-x) * 0.1) !important;
-}
-
-/* Внутренний контейнер с анимацией */
 .card-inner {
   position: relative;
   width: 100%;
@@ -23,28 +38,26 @@
   transition: transform 0.6s;
 }
 
-/* При классе flipped карточка переворачивается */
 .flipped .card-inner {
   transform: rotateY(180deg);
 }
 
-/* Лицевая и оборотная стороны */
 .card-front,
 .card-back {
   position: absolute;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
   top: 0;
   left: 0;
+  backface-visibility: hidden;
 }
 
 .card-front {
-  transform: rotateY(0deg); /* Лицевая сторона */
+  transform: rotateY(0deg);
 }
 
 .card-back {
-  transform: rotateY(180deg); /* Оборотная сторона */
+  transform: rotateY(180deg);
 }
 
 .card-front img,
@@ -54,25 +67,24 @@
   object-fit: contain;
 }
 
-.matched::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 255, 0, 0.4); /* зелёный оверлей */
-  pointer-events: none;
-  z-index: 2;
-}
-
+.matched::after,
 .unmatched::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(255, 0, 0, 0.4); /* красный оверлей */
   pointer-events: none;
   z-index: 2;
 }
 
-/* Таймер */
+.matched::after {
+  background-color: rgba(0, 255, 0, 0.4); /* зелёный оверлей */
+}
+
+.unmatched::after {
+  background-color: rgba(255, 0, 0, 0.4); /* красный оверлей */
+}
+
+/* ===== Timer ===== */
 .timer {
   background: #fff;
   color: #333;
@@ -87,21 +99,7 @@
   transition: all 0.3s ease;
 }
 
-/* Стили для игрового поля */
-#gameBoard {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.col-custom-8 {
-  flex: 0 0 12.5%;
-  max-width: 12.5%;
-  padding-left: calc(var(--bs-gutter-x) * 0.1) !important;
-  padding-right: calc(var(--bs-gutter-x) * 0.1) !important;
-}
-
+/* ===== Game Over Overlay ===== */
 #gameOverOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -135,5 +133,5 @@
 }
 
 .game-over-button:hover {
-  background-color: #3498db;
+  background-color: #3498db; /* цвет не меняется, возможно упущение */
 }
