@@ -12,6 +12,12 @@ import {
 import { renderGameBoard } from '../components/gameBoard';
 import { GameOverOverlay } from '../components/gameOverOverlay';
 
+type Difficulty = "4x4" | "6x6" | "8x8";
+
+const isValidDifficulty = (value: any): value is Difficulty => {
+  return value === "4x4" || value === "6x6" || value === "8x8";
+};
+
 export class GameManager {
   private timer: Timer;
   private intervalId: number | null = null;
@@ -26,7 +32,6 @@ export class GameManager {
   constructor() {
     this.timer = new Timer();
 
-    // Subscribe to state changes (assuming AppState supports events)
     document.addEventListener('stateChanged', () => {
       const { gameTime } = AppState.getState();
       this.timer.render(gameTime || 0);
@@ -138,14 +143,18 @@ export class GameManager {
     await db.init();
 
     const playerId = AppState.getState().currentPlayerId;
+    const settings = await db.getGameSettings();
+    const rawDifficulty = settings?.difficulty;
+    const difficulty: Difficulty = isValidDifficulty(rawDifficulty) ? rawDifficulty : '4x4';
+
     if (playerId !== null) {
       await db.addGameResult({
         playerId,
         score,
         time: gameTime,
         date: new Date(),
-        difficulty: (await db.getGameSettings())?.difficulty || '4x4',
-        cardType: (await db.getGameSettings())?.cardType || 'classic',
+        difficulty,
+        cardType: settings?.cardType || 'classic',
       });
     }
 
@@ -158,14 +167,16 @@ export class GameManager {
     const db = new GameDatabase();
     await db.init();
     const settings = await db.getGameSettings();
+    const rawDifficulty = settings?.difficulty;
+    const difficulty: Difficulty = isValidDifficulty(rawDifficulty) ? rawDifficulty : '4x4';
 
-    const difficultyMap: Record<string, number> = {
+    const difficultyMap: Record<Difficulty, number> = {
       '4x4': 16,
       '6x6': 36,
       '8x8': 64,
     };
 
-    const cardCount = difficultyMap[settings?.difficulty] || 16;
+    const cardCount = difficultyMap[difficulty];
     const uniqueCardCount = cardCount / 2;
 
     const images = Array.from({ length: uniqueCardCount }, (_, i) =>
@@ -185,7 +196,7 @@ export class GameManager {
 
     renderGameBoard({
       cards,
-      difficulty: settings?.difficulty || '4x4',
+      difficulty,
       onCardClick,
     });
   }
